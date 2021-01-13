@@ -1,0 +1,33 @@
+{
+  "name": "projeto-pratico-pjc-backend",
+  "version": "1.0.0",
+  "description": "Projeto backend para processo seletivo PJCMT",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon ./bin/www"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RafaelSantana11/projeto-pratico-pjc-backend.git"
+  },
+  "author": "Rafael Candido Santana de Lima",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RafaelSantana11/projeto-pratico-pjc-backend/issues"
+  },
+  "homepage": "https://github.com/RafaelSantana11/projeto-pratico-pjc-backend#readme",
+  "dependencies": {
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "express": "^4.17.1",
+    "http-errors": "~1.6.3",
+    "morgan": "~1.9.1",
+    "mysql2": "^2.2.5",
+    "nodemon": "^2.0.7",
+    "sequelize": "^6.3.5"
+  },
+  "devDependencies": {
+    "sequelize-cli": "^6.2.0"
+  }
+}
