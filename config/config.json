@@ -2,8 +2,8 @@
     "development": {
       "username": "masteruser",
       "password": "mtulhm898#",
-      "database": "api_database",
-      "host": "localhost",
+      "database": "project_database",
+      "host": "database",
       "dialect": "mysql"
     },
     "test": {
