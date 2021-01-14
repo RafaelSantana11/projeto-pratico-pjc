@@ -5,7 +5,7 @@ class Album extends Sequelize.Model {
         return super.init(
             {   
                 name: Sequelize.STRING,
-                publication_year: Sequelize.DATEONLY,
+                publication_year: Sequelize.STRING,
             },
             {
                 underscored: true,
