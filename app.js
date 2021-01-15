@@ -1,12 +1,13 @@
-var express = require('express');
-var path = require('path');
+const express = require('express');
+const path = require('path');
 const cors = require("cors");
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 
-var indexRouter = require('./routes/index');
+const indexRouter = require('./routes/index');
+const artistsRouter = require('./routes/artists')
 
-var app = express();
+const app = express();
 
 //Permitindo acesso somente aos seguintes endereços
 app.use(
@@ -22,6 +23,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 //app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
+app.use('/', [
+  indexRouter,
+  artistsRouter
+]);
 
 module.exports = app;
