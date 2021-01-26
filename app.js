@@ -5,7 +5,8 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 
 const indexRouter = require('./routes/index');
-const artistsRouter = require('./routes/artists')
+const authRouter = require('./routes/auth');
+const artistsRouter = require('./routes/artists');
 
 const app = express();
 
@@ -25,7 +26,8 @@ app.use(cookieParser());
 
 app.use('/', [
   indexRouter,
-  artistsRouter
+  artistsRouter,
+  authRouter
 ]);
 
 module.exports = app;
