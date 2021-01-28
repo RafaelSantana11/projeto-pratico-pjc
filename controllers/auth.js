@@ -22,9 +22,6 @@ exports.auth = async function (req, res) {
         //separando os dados do usuário
         const { id: userId, ...userData } = user;
 
-        console.log(password)
-        console.log(user.password)
-
         //comparando a senha
         if (!(await bcrypt.compare(password, user.password)))
             throw "Senha incorreta";

@@ -6,7 +6,7 @@ const logger = require('morgan');
 
 const indexRouter = require('./routes/index');
 const authRouter = require('./routes/auth');
-const artistsRouter = require('./routes/artists');
+const albumsRouter = require('./routes/albums');
 
 const app = express();
 
@@ -26,7 +26,7 @@ app.use(cookieParser());
 
 app.use('/', [
   indexRouter,
-  artistsRouter,
+  albumsRouter,
   authRouter
 ]);
 

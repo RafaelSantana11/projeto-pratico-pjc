@@ -21,11 +21,11 @@ exports.getAll = async function (req, res) {
     //vizualisa os filtros desejados e adiciona-is no objeto where para filtragem
     if (req.query.search) where.name = { [Op.like]: `%${req.query.search}%` }; //consulta pelo nome do cantor
 
-    if (req.query.album) where['$Album.name$'] = { [Op.like]: `%${req.query.album}%` }; //pelo nome do album
+    if (req.query.album) where['$Artist.name$'] = { [Op.like]: `%${req.query.album}%` }; //pelo nome do album
 
     //realiza a busca paginada incluindo o objeto where com os filtros, ordendando por ordem alfabética
-    const artists =
-      await Artist.findAndCountAll({
+    const albums =
+      await Album.findAndCountAll({
         where,
         offset: offset,
         limit: resultsPerPage,
@@ -34,18 +34,20 @@ exports.getAll = async function (req, res) {
         distinct: true,
         include: [ //inclui na busca os dados de cada modelo relacionado com o artista
           {
-            model: MusicalGroup,
+            model: Artist,
             attributes: { exclude: ["createdAt", "updatedAt"] },
-          },
-          {
-            model: Album,
-            attributes: { exclude: ["createdAt", "updatedAt"] },
+            include: [
+              {
+                model: MusicalGroup,
+                attributes: { exclude: ["createdAt", "updatedAt"] },
+              },
+            ]
           },
         ]
       })
-    
+
     //retorna os dados em formato json
-    res.json(artists);
+    res.json(albums);
   } catch (error) {
     console.log(error);
     res.status(500).json({});
