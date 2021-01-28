@@ -11,17 +11,17 @@ exports.getAll = async function (req, res) {
       : configPagination.resultsPerpage;
 
     //verifica se foi enviado o número da página desejada (via query)
-    const page = !req.query.page ? 1 : parseInt(req.query.page);
-
+    const page = !req.query.currentPage ? 1 : parseInt(req.query.currentPage);
+    
     //calcula o offset para realizar a paginação
     const offset = page === 1 ? 0 : (page - 1) * resultsPerPage;
 
     const where = {};
 
     //vizualisa os filtros desejados e adiciona-is no objeto where para filtragem
-    if (req.query.search) where.name = { [Op.like]: `%${req.query.search}%` }; //consulta pelo nome do cantor
+    if (req.query.name) where.name = { [Op.like]: `%${req.query.name}%` }; //consulta pelo nome do cantor
 
-    if (req.query.album) where['$Artist.name$'] = { [Op.like]: `%${req.query.album}%` }; //pelo nome do album
+    if (req.query.artistName) where['$Artist.name$'] = { [Op.like]: `%${req.query.album}%` }; //pelo nome do album
 
     //realiza a busca paginada incluindo o objeto where com os filtros, ordendando por ordem alfabética
     const albums =
