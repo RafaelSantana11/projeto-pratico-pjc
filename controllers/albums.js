@@ -21,7 +21,7 @@ exports.getAll = async function (req, res) {
     //vizualisa os filtros desejados e adiciona-is no objeto where para filtragem
     if (req.query.name) where.name = { [Op.like]: `%${req.query.name}%` }; //consulta pelo nome do cantor
 
-    if (req.query.artistName) where['$Artist.name$'] = { [Op.like]: `%${req.query.album}%` }; //pelo nome do album
+    if (req.query.artistName) where['$Artist.name$'] = { [Op.like]: `%${req.query.artistName}%` }; //pelo nome do album
 
     //realiza a busca paginada incluindo o objeto where com os filtros, ordendando por ordem alfabética
     const albums =
