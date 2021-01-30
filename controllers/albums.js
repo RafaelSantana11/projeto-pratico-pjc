@@ -54,6 +54,26 @@ exports.getAll = async function (req, res) {
   }
 };
 
+exports.getOne = async function (req, res) {
+  try {
+    const albumId = req.params.id;
+
+    const album = JSON.parse(
+      JSON.stringify(
+        await Album.findOne({
+          where: { id: albumId },
+          attributes: { exclude: ["createdAt", "updatedAt"] },
+        })
+      )
+    );
+
+    res.json(album);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+};
+
 exports.create = async function (req, res) {
   try {
 
