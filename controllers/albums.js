@@ -58,9 +58,9 @@ exports.create = async function (req, res) {
   try {
 
     //insere os dados enviados pelo corpo da requisição
-    const createdArtist = await Artist.create(req.body);
+    const createdAlbum = await Album.create(req.body);
 
-    res.json(createdArtist);
+    res.json(createdAlbum);
   } catch (error) {
     console.log(error);
     res.status(500).json({});
@@ -71,7 +71,7 @@ exports.update = async function (req, res) {
   try {
 
     //atualiza o artista cujo id foi informado pela rota, substituindo os dados enviados no corpo da requisição
-    const updatedData = await Artist.update(req.body, {
+    const updatedData = await Album.update(req.body, {
       where: { id: req.params.id },
     });
 
@@ -85,7 +85,7 @@ exports.delete = async function (req, res) {
   try {
 
     //deleta o artista cujo id foi enviado como parâmetro da rota
-    await Artist.destroy({
+    await Album.destroy({
       where: { id: req.params.id },
     });
 
