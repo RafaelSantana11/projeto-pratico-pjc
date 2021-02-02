@@ -1,7 +1,17 @@
-const { Artist, MusicalGroup, Album, sequelize } = require("../models");
+const { Artist, MusicalGroup, Album, AlbumMedia, sequelize } = require("../models");
 const configPagination = require("../config/pagination.json");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
+
+const Minio = require('minio');
+const minioConfig = require("../config/minioConfig.json");
+
+const client = new Minio.Client({
+  endPoint: minioConfig.ENDPOINT,
+  accessKey: minioConfig.ACCESS_KEY_ID,
+  secretKey: minioConfig.ACCESS_KEY_SECRET
+});
+
 
 exports.getAll = async function (req, res) {
   try {
@@ -12,7 +22,7 @@ exports.getAll = async function (req, res) {
 
     //verifica se foi enviado o número da página desejada (via query)
     const page = !req.query.currentPage ? 1 : parseInt(req.query.currentPage);
-    
+
     //calcula o offset para realizar a paginação
     const offset = page === 1 ? 0 : (page - 1) * resultsPerPage;
 
@@ -75,14 +85,46 @@ exports.getOne = async function (req, res) {
 };
 
 exports.create = async function (req, res) {
-  try {
+  const t = await sequelize.transaction(); //inicia a transaction, para que se alguma operação der errado, reverta o que tiver sido feito
 
-    //insere os dados enviados pelo corpo da requisição
-    const createdAlbum = await Album.create(req.body);
+  try {
+    const files = req.files;
+
+    //insere os dados enviados pelo corpo da requisição na tabela dos albuns
+    const createdAlbum = await Album.create(req.body, { transaction: t });
+
+    //salva os objetos no minio
+    for (const file of files) {
+      client.putObject(minioConfig.BUCKET,
+        file.originalname,
+        file.buffer,
+        function (err, etag) {
+          return console.log(err, etag) // err should be null
+        })
+    }
+
+    //insere os arquivos de midia na tabela
+    const filePromises = [];
+
+    for (const file of files)
+      filePromises.push(
+        AlbumMedia.create(
+          { name: file.originalname, AlbumId: createdAlbum.id },
+          { transaction: t }
+        )
+      );
+
+
+    await Promise.all(filePromises);
+
+    await t.commit();
 
     res.json(createdAlbum);
   } catch (error) {
     console.log(error);
+
+    await t.rollback();
+
     res.status(500).json({});
   }
 };

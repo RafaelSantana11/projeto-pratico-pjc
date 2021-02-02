@@ -1,11 +1,10 @@
 const Sequelize = require('sequelize')
 
-class Album extends Sequelize.Model {
+class AlbumMedia extends Sequelize.Model {
     static init(sequelize, Sequelize) {
         return super.init(
             {   
                 name: Sequelize.STRING,
-                publicationYear: Sequelize.STRING,
             },
             {
                 underscored: true,
@@ -15,9 +14,8 @@ class Album extends Sequelize.Model {
     }
 
     static associate(models) {
-        this.belongsTo(models.Artist)
-        this.hasMany(models.AlbumMedia)
+        this.belongsTo(models.Album)
     }
 }
 
-module.exports = Album
+module.exports = AlbumMedia
