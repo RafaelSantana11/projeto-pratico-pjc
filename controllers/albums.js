@@ -167,3 +167,42 @@ exports.delete = async function (req, res) {
     res.status(500).json({});
   }
 };
+
+exports.deleteAlbumFiles = async function (req, res) {
+  const t = await sequelize.transaction();
+
+  try {
+
+    const albumId = req.params.id
+
+    //busca os registros de arquivos para aquele album na tabela de Album Media
+    const albumFiles = JSON.parse(
+      JSON.stringify(
+        await AlbumMedia.findAll({
+          where: { AlbumId: albumId },
+          transaction: t,
+        })
+      )
+    )
+
+    //deleta os registros de arquivos do album na tabela de Album Media
+    await AlbumMedia.destroy({
+      where: { AlbumId: albumId },
+      transaction: t,
+    });
+
+    //para cada arquivo registrado, deleta do bucket no min.io
+    for (const file of albumFiles) {
+      await client.removeObject(minioConfig.BUCKET, file.name)
+    }
+
+    await t.commit();
+
+    res.send(true);
+  } catch (error) {
+    console.log(error)
+    await t.rollback();
+    res.status(500).json({});
+  }
+};
+

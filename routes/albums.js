@@ -21,4 +21,6 @@ router.put('/albums/:id', validateToken, validate, controller.update) //rota que
 
 router.delete('/albums/:id', validateToken, controller.delete) //rota que cadastra um album específico
 
+router.delete('/albums/:id/files', validateToken, controller.deleteAlbumFiles) //rota que deleta os arquivos de um álbum
+
 module.exports = router
