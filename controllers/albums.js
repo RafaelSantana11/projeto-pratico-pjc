@@ -73,6 +73,12 @@ exports.getOne = async function (req, res) {
         await Album.findOne({
           where: { id: albumId },
           attributes: { exclude: ["createdAt", "updatedAt"] },
+          include: [
+            {
+              model: AlbumMedia,
+              attributes: { exclude: ["createdAt", "updatedAt"] },
+            }
+          ]
         })
       )
     );
@@ -93,27 +99,32 @@ exports.create = async function (req, res) {
     //insere os dados enviados pelo corpo da requisição na tabela dos albuns
     const createdAlbum = await Album.create(req.body, { transaction: t });
 
-    //salva os objetos no minio
+    const filePromises = []; //array de promises
+
+    //para cada arquivo
     for (const file of files) {
+      //salva os objetos no minio
       client.putObject(minioConfig.BUCKET,
         file.originalname,
         file.buffer,
         function (err, etag) {
           return console.log(err, etag) // err should be null
         })
-    }
 
-    //insere os arquivos de midia na tabela
-    const filePromises = [];
+      //gera uma url para acessá-lo
+      let presignedUrl = await client.presignedGetObject(
+        minioConfig.BUCKET,
+        file.originalname,
+        1000)
 
-    for (const file of files)
+      //insere os arquivos de midia na tabela
       filePromises.push(
         AlbumMedia.create(
-          { name: file.originalname, AlbumId: createdAlbum.id },
+          { name: file.originalname, url: presignedUrl, AlbumId: createdAlbum.id },
           { transaction: t }
         )
       );
-
+    }
 
     await Promise.all(filePromises);
 

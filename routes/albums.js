@@ -21,10 +21,4 @@ router.put('/albums/:id', validateToken, validate, controller.update) //rota que
 
 router.delete('/albums/:id', validateToken, controller.delete) //rota que cadastra um album específico
 
-// router.post('/albums/:id/media/upload',
-//   validateToken,
-//   multer({ storage: multer.memoryStorage() }).single('file'),
-//   controller.uploadHandler
-// );
-
 module.exports = router

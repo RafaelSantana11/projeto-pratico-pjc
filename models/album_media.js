@@ -5,6 +5,7 @@ class AlbumMedia extends Sequelize.Model {
         return super.init(
             {   
                 name: Sequelize.STRING,
+                url: Sequelize.TEXT,
             },
             {
                 underscored: true,
