@@ -17,7 +17,12 @@ router.post('/albums',
 
 router.get('/albums/:id', validateToken, controller.getOne) //rota que busca os dados de um album específico
 
-router.put('/albums/:id', validateToken, validate, controller.update) //rota que atualiza os doados um determinado album
+router.put('/albums/:id',
+  validateToken,
+  multer({ storage: multer.memoryStorage() }).array('file'),
+  validate,
+  controller.update
+) //rota que atualiza os doados um determinado album
 
 router.delete('/albums/:id', validateToken, controller.delete) //rota que cadastra um album específico
 

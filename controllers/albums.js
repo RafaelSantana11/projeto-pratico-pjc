@@ -99,34 +99,7 @@ exports.create = async function (req, res) {
     //insere os dados enviados pelo corpo da requisição na tabela dos albuns
     const createdAlbum = await Album.create(req.body, { transaction: t });
 
-    const filePromises = []; //array de promises
-
-    //para cada arquivo
-    for (const file of files) {
-      //salva os objetos no minio
-      client.putObject(minioConfig.BUCKET,
-        file.originalname,
-        file.buffer,
-        function (err, etag) {
-          return console.log(err, etag) // err should be null
-        })
-
-      //gera uma url para acessá-lo
-      let presignedUrl = await client.presignedGetObject(
-        minioConfig.BUCKET,
-        file.originalname,
-        1000)
-
-      //insere os arquivos de midia na tabela
-      filePromises.push(
-        AlbumMedia.create(
-          { name: file.originalname, url: presignedUrl, AlbumId: createdAlbum.id },
-          { transaction: t }
-        )
-      );
-    }
-
-    await Promise.all(filePromises);
+    await insertAlbumFiles({ files, albumId: createdAlbum.id, t });
 
     await t.commit();
 
@@ -141,15 +114,30 @@ exports.create = async function (req, res) {
 };
 
 exports.update = async function (req, res) {
+  const t = await sequelize.transaction();
+
   try {
 
-    //atualiza o artista cujo id foi informado pela rota, substituindo os dados enviados no corpo da requisição
+    const albumId = req.params.id;
+
+    const files = req.files;
+
+    //atualiza o artista cujo id foi informado pela rota, substituindo os dados pelos enviados no corpo da requisição
     const updatedData = await Album.update(req.body, {
-      where: { id: req.params.id },
+      where: { id: albumId },
+      transaction: t,
     });
+
+    await insertAlbumFiles({ files, albumId, t });
+
+    await t.commit();
 
     res.json(updatedData);
   } catch (error) {
+    console.log(error);
+
+    await t.rollback();
+
     res.status(500).json({});
   }
 };
@@ -206,3 +194,36 @@ exports.deleteAlbumFiles = async function (req, res) {
   }
 };
 
+
+/********* FUNÇÕES AUXILIARES *********/
+
+async function insertAlbumFiles({ files, albumId, t }) {
+  const filePromises = []; //array de promises
+
+  //para cada arquivo
+  for (const file of files) {
+    //salva os objetos no minio
+    client.putObject(minioConfig.BUCKET,
+      file.originalname,
+      file.buffer,
+      function (err, etag) {
+        return console.log(err, etag) // err should be null
+      })
+
+    //gera uma url para acessá-lo
+    let presignedUrl = await client.presignedGetObject(
+      minioConfig.BUCKET,
+      file.originalname,
+      1000)
+
+    //insere os arquivos de midia na tabela
+    filePromises.push(
+      AlbumMedia.create(
+        { name: file.originalname, url: presignedUrl, AlbumId: albumId },
+        { transaction: t }
+      )
+    );
+  }
+
+  await Promise.all(filePromises);
+}
