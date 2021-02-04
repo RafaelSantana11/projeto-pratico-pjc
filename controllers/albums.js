@@ -128,6 +128,7 @@ exports.update = async function (req, res) {
       transaction: t,
     });
 
+    //chama a função auxiliar que insere os arquivos
     await insertAlbumFiles({ files, albumId, t });
 
     await t.commit();
@@ -143,15 +144,29 @@ exports.update = async function (req, res) {
 };
 
 exports.delete = async function (req, res) {
+  const t = await sequelize.transaction();
+
   try {
+
+    const albumId = req.params.id;
+
+    //chama a função auxiliar que remove os arquivos
+    await deleteAlbumMedia({albumId, t});
 
     //deleta o artista cujo id foi enviado como parâmetro da rota
     await Album.destroy({
-      where: { id: req.params.id },
+      where: { id: albumId },
+      transaction: t,
     });
+
+    await t.commit();
 
     res.send(true);
   } catch (error) {
+    console.log(error);
+
+    await t.rollback();
+    
     res.status(500).json({});
   }
 };
@@ -163,26 +178,7 @@ exports.deleteAlbumFiles = async function (req, res) {
 
     const albumId = req.params.id
 
-    //busca os registros de arquivos para aquele album na tabela de Album Media
-    const albumFiles = JSON.parse(
-      JSON.stringify(
-        await AlbumMedia.findAll({
-          where: { AlbumId: albumId },
-          transaction: t,
-        })
-      )
-    )
-
-    //deleta os registros de arquivos do album na tabela de Album Media
-    await AlbumMedia.destroy({
-      where: { AlbumId: albumId },
-      transaction: t,
-    });
-
-    //para cada arquivo registrado, deleta do bucket no min.io
-    for (const file of albumFiles) {
-      await client.removeObject(minioConfig.BUCKET, file.name)
-    }
+    await deleteAlbumMedia({albumId, t});
 
     await t.commit();
 
@@ -226,4 +222,27 @@ async function insertAlbumFiles({ files, albumId, t }) {
   }
 
   await Promise.all(filePromises);
+}
+
+async function deleteAlbumMedia({albumId, t}) {
+  //busca os registros de arquivos para aquele album na tabela de Album Media
+  const albumFiles = JSON.parse(
+    JSON.stringify(
+      await AlbumMedia.findAll({
+        where: { AlbumId: albumId },
+        transaction: t,
+      })
+    )
+  )
+
+  //deleta os registros de arquivos do album na tabela de Album Media
+  await AlbumMedia.destroy({
+    where: { AlbumId: albumId },
+    transaction: t,
+  });
+
+  //para cada arquivo registrado, deleta do bucket no min.io
+  for (const file of albumFiles) {
+    await client.removeObject(minioConfig.BUCKET, file.name)
+  }
 }
