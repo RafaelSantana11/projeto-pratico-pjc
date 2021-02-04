@@ -3,6 +3,7 @@ const configPagination = require("../config/pagination.json");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 
+//configurações do min.io client
 const Minio = require('minio');
 const minioConfig = require("../config/minioConfig.json");
 
@@ -12,6 +13,7 @@ const client = new Minio.Client({
   secretKey: minioConfig.ACCESS_KEY_SECRET
 });
 
+/*********** CONTROLLERS DE ALBUM ************/
 
 exports.getAll = async function (req, res) {
   try {
@@ -99,6 +101,10 @@ exports.create = async function (req, res) {
     //insere os dados enviados pelo corpo da requisição na tabela dos albuns
     const createdAlbum = await Album.create(req.body, { transaction: t });
 
+    //verifica se existe o bucket, e se nao exixtir, cria
+    await verifyIfBucketExists();
+
+    //com a certeza da existência do bucket, armazena os arquivos
     await insertAlbumFiles({ files, albumId: createdAlbum.id, t });
 
     await t.commit();
@@ -151,7 +157,7 @@ exports.delete = async function (req, res) {
     const albumId = req.params.id;
 
     //chama a função auxiliar que remove os arquivos
-    await deleteAlbumMedia({albumId, t});
+    await deleteAlbumMedia({ albumId, t });
 
     //deleta o artista cujo id foi enviado como parâmetro da rota
     await Album.destroy({
@@ -166,7 +172,7 @@ exports.delete = async function (req, res) {
     console.log(error);
 
     await t.rollback();
-    
+
     res.status(500).json({});
   }
 };
@@ -178,7 +184,7 @@ exports.deleteAlbumFiles = async function (req, res) {
 
     const albumId = req.params.id
 
-    await deleteAlbumMedia({albumId, t});
+    await deleteAlbumMedia({ albumId, t });
 
     await t.commit();
 
@@ -224,7 +230,7 @@ async function insertAlbumFiles({ files, albumId, t }) {
   await Promise.all(filePromises);
 }
 
-async function deleteAlbumMedia({albumId, t}) {
+async function deleteAlbumMedia({ albumId, t }) {
   //busca os registros de arquivos para aquele album na tabela de Album Media
   const albumFiles = JSON.parse(
     JSON.stringify(
@@ -245,4 +251,17 @@ async function deleteAlbumMedia({albumId, t}) {
   for (const file of albumFiles) {
     await client.removeObject(minioConfig.BUCKET, file.name)
   }
+}
+
+async function verifyIfBucketExists() {
+  //busca os buckets
+  const buckets = await client.listBuckets();
+
+  //busca no array de buckets o nome do bucket descrito em minioConfig
+  const index = buckets.findIndex(
+    (item) => item.name == minioConfig.BUCKET
+  );
+
+  //quando não é encontrado, a função findIndex retorna -1
+  if (index === -1) await client.makeBucket(minioConfig.BUCKET);
 }
