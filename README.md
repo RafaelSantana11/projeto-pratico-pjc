@@ -2,7 +2,7 @@
 API Rest construída utilizando Node.js, Electron e dockerizada. Upload de arquivos utilizando Min.Io
 
 ## Dados de inscrição
-Candidato: Rafael Cândido Santana de Lima
+- Candidato: Rafael Cândido Santana de Lima
 - Vaga: Analista Desenvolvedor
 
 ## Execução do projeto
@@ -43,6 +43,14 @@ docker logs -f --tail 100 server
 ### Encerrar execução do sistema
 ```
 docker-compose down
+```
+
+### Dados de acesso
+```
+login: usuario@teste.com
+```
+```
+senha: dxK86g#
 ```
 
 ## O que foi implementado:
